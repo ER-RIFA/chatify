@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build":"npm install --prefix backend && npm install --prefix frontend && npm run build --prefix frontend",
-    "start":"npm run start --prefix backend"
+    "build": "npm install --prefix backend && npm install --prefix frontend && npm run build --prefix frontend",
+    "start": "npm run start --prefix backend"
   },
   "repository": {
     "type": "git",
@@ -18,5 +18,8 @@
   "bugs": {
     "url": "https://github.com/ER-RIFA/chatify/issues"
   },
-  "homepage": "https://github.com/ER-RIFA/chatify#readme"
+  "homepage": "https://github.com/ER-RIFA/chatify#readme",
+  "dependencies": {
+    "resend": "^6.18.1"
+  }
 }
