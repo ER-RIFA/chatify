@@ -6,6 +6,11 @@ import { ENV } from "../lib/env.js";
 import cloudinary from "../lib/cloudinary.js";
 
 export const signup = async(req, res) => {
+
+    console.log("🔥 SIGNUP CONTROLLER HIT");
+    console.log("BODY:", req.body);
+
+
     const {fullName, email, password} = req.body
     
     try {
