@@ -1,6 +1,7 @@
 import express from "express";
 import cookieParser from "cookie-parser";
 import path from "path";
+import cors from "cors";
 
 import authRoutes from "./routes/auth.route.js";
 import messageRoutes from "./routes/message.route.js";
@@ -13,6 +14,21 @@ const __dirname = path.resolve();
 const PORT = ENV.PORT || 3000;
 
 app.use(express.json());
+
+const allowedOrigins = [
+    "http://localhost:5173",
+    "https://chatify-three-flax.vercel.app"
+];
+app.use(cors({
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error("Not allowed by CORS"));
+        }
+    },
+    credentials: true
+}));
 app.use(cookieParser());
 
 app.use("/api/auth", authRoutes);
