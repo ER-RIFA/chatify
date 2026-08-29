@@ -4,7 +4,7 @@ import UsersLoadingSkeleton from "./UsersLoadingSkeleton";
 import { useAuthStore } from "../store/useAuthStore";
 
 function ContactList() {
-    const { getAllContacts, allContacts, setSelectedUser, isUsersLoading }= useChatStore();
+    const { getAllContacts, allContacts, setSelectedUser, isUserLoading }= useChatStore();
     const { onlineUsers } = useAuthStore();
 
     useEffect(() => {

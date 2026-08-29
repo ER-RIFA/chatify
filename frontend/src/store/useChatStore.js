@@ -10,36 +10,39 @@ export const useChatStore = create((set, get) => ({
     activeTab: "chats",
     selectedUser: null,
     isUsersLoading: false,
-    isMessagesLoading: [],
+    isUserLoading: false,
+    isMessagesLoading: false,
     isSoundEnabled: JSON.parse(localStorage.getItem("isSoundEnabled")) === true,
 
     toggleSound: () => {
-        localStorage.setItem("isSoundEnabled", !get.isSoundEnabled);
+        localStorage.setItem("isSoundEnabled", !get().isSoundEnabled);
         set({ isSoundEnabled: !get().isSoundEnabled });
     },
 
-    setActiveTab: (tab) => set({ activeTab: tab}),
+    setActiveTab: (tab) => set({ activeTab: tab }),
     setSelectedUser: (selectedUser) => set({ selectedUser }),
 
     getAllContacts: async () => {
-        set({ isUserLoading: true });
+        set({ isUsersLoading: true });
+
         try {
-            const res = await axiosInstance.get("/messages/contatcs");
+            const res = await axiosInstance.get("/messages/contacts");
             set({ allContacts: res.data });
         } catch (error) {
-            toast.error(error.response.data.message);
+            toast.error(error.response?.data?.message || "Something went wrong");
         } finally {
-            set({ isUsersLoading: true});
+            set({ isUsersLoading: false });
         }
     },
 
     getMyChatPartners: async () => {
-        set({ isUsersLaoding: true });
+        set({ isUsersLoading: true });
+
         try {
             const res = await axiosInstance.get("/messages/chats");
             set({ chats: res.data });
         } catch (error) {
-            toast.error(error.response.data.emssage);
+            toast.error(error.response?.data?.message || "Something went wrong");
         } finally {
             set({ isUsersLoading: false });
         }
@@ -65,49 +68,72 @@ export const useChatStore = create((set, get) => ({
 
         const optimisticMessage = {
             _id: tempId,
-            senderI: authUser._id,
+            senderId: authUser._id,
             receiverId: selectedUser._id,
             text: messageData.text,
             image: messageData.image,
             createdAt: new Date().toISOString(),
-            isOptimistic: true //flag to identify optimistic messages (optional)
-        }
-        //immediately update the UI  by adding the message
-        set({ message: [...messages, optimisticMessage] });
+            isOptimistic: true,
+        };
+
+        // Immediately update UI
+        set({
+            messages: [...messages, optimisticMessage],
+        });
 
         try {
-            const res = await axiosInstance.post(`/messages/send/${selectedUser._id}`, messageData);
-            set({ messages: messages.contact(res.data) });
+            const res = await axiosInstance.post(
+                `/messages/send/${selectedUser._id}`,
+                messageData
+            );
+
+            set({
+                messages: [...get().messages, res.data],
+            });
         } catch (error) {
-            //remove optimistic message on failure
-            set({ messages: messages });
-            toast.error(error.response?.data?.message || "Something went wrong");
+            // Remove optimistic message on failure
+            set({ messages: get().messages.filter((msg) => msg._id !== tempId) });
+
+            toast.error(
+                error.response?.data?.message || "Something went wrong"
+            );
         }
     },
 
     subscribeToMessages: () => {
         const { selectedUser, isSoundEnabled } = get();
-        if (!isSelectedUser) return;
+
+        if (!selectedUser) return;
 
         const socket = useAuthStore.getState().socket;
 
         socket.on("newMessage", (newMessage) => {
-            const isMessageSentFromSlectedUser = newMessage.senderId === selectedUser._id;
-            if(!isMessageSentFromSelectedUser) return;
+            const isMessageSentFromSelectedUser =
+                newMessage.senderId === selectedUser._id;
+
+            if (!isMessageSentFromSelectedUser) return;
 
             const currentMessages = get().messages;
-            set({ messages: [...currentMessages, newMessage] });
+
+            set({
+                messages: [...currentMessages, newMessage],
+            });
 
             if (isSoundEnabled) {
-                const notificationSound = new Audio("/sounds/notification.mp3");
+                const notificationSound = new Audio(
+                    "/sounds/notification.mp3"
+                );
 
-                notificationSound.currentTime = 0; //reset to start
-                notificationSound.play().catch((e) => console.log("Audio play failed:", e));
+                notificationSound.currentTime = 0;
+
+                notificationSound
+                    .play()
+                    .catch((e) => console.log("Audio play failed:", e));
             }
         });
     },
 
-    unsunbscribeFromMessages: () => {
+    unsubscribeFromMessages: () => {
         const socket = useAuthStore.getState().socket;
         socket.off("newMessage");
     },
