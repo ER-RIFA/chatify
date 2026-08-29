@@ -35,4 +35,4 @@ function ChatsList() {
     );
 }
 
-export default ChatList;
+export default ChatsList;
