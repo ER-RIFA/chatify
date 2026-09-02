@@ -15,37 +15,57 @@ function MessageInput() {
 
   const handleSendMessage = (e) => {
     e.preventDefault();
+
     if (!text.trim() && !imagePreview) return;
-    if (isSoundEnabled) playRandomKeyStrokeSound();
+
+    if (isSoundEnabled) {
+      playRandomKeyStrokeSound();
+    }
 
     sendMessage({
       text: text.trim(),
       image: imagePreview,
     });
+
     setText("");
-    setImagePreview("");
-    if (fileInputRef.current) fileInputRef.current.value = "";
+    setImagePreview(null);
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
+
+    if (!file) return;
+
     if (!file.type.startsWith("image/")) {
       toast.error("Please select an image file");
       return;
     }
 
     const reader = new FileReader();
-    reader.onloadend = () => setImagePreview(reader.result);
+
+    reader.onloadend = () => {
+      setImagePreview(reader.result);
+    };
+
     reader.readAsDataURL(file);
   };
 
   const removeImage = () => {
     setImagePreview(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   return (
     <div className="p-4 border-t border-slate-700/50">
+
+      {/* IMAGE PREVIEW */}
       {imagePreview && (
         <div className="max-w-3xl mx-auto mb-3 flex items-center">
           <div className="relative">
@@ -54,6 +74,7 @@ function MessageInput() {
               alt="Preview"
               className="w-20 h-20 object-cover rounded-lg border border-slate-700"
             />
+
             <button
               onClick={removeImage}
               className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center text-slate-200 hover:bg-slate-700"
@@ -65,18 +86,27 @@ function MessageInput() {
         </div>
       )}
 
-      <form onSubmit={handleSendMessage} className="max-w-3xl mx-auto flex space-x-4">
+      {/* MESSAGE FORM */}
+      <form
+        onSubmit={handleSendMessage}
+        className="max-w-3xl mx-auto flex space-x-4"
+      >
+        {/* MESSAGE INPUT */}
         <input
           type="text"
           value={text}
           onChange={(e) => {
             setText(e.target.value);
-            isSoundEnabled && playRandomKeyStrokeSound();
+
+            if (isSoundEnabled) {
+              playRandomKeyStrokeSound();
+            }
           }}
-          className="flex-1 bg-slate-800/50 border border-slate-700/50 rounded-lg py-2 px-4"
+          className="flex-1 bg-slate-800/50 border border-slate-700/50 rounded-lg py-2 px-4 text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-cyan-500/50"
           placeholder="Type your message..."
         />
 
+        {/* HIDDEN FILE INPUT */}
         <input
           type="file"
           accept="image/*"
@@ -85,6 +115,7 @@ function MessageInput() {
           className="hidden"
         />
 
+        {/* IMAGE BUTTON */}
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
@@ -94,6 +125,8 @@ function MessageInput() {
         >
           <ImageIcon className="w-5 h-5" />
         </button>
+
+        {/* SEND BUTTON */}
         <button
           type="submit"
           disabled={!text.trim() && !imagePreview}
@@ -105,4 +138,5 @@ function MessageInput() {
     </div>
   );
 }
+
 export default MessageInput;
